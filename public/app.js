@@ -878,18 +878,18 @@ function renderTable() {
       }
 
       tr.innerHTML = `
-        <td class="${invNoClass}" data-copy-val="${escapeHtml(invNoText)}">${invNoHtml}</td>
-        <td class="${invDateClass}" data-copy-val="${escapeHtml(invDateText)}">${invDateHtml}</td>
-        <td class="${compNameClass}" data-copy-val="${escapeHtml(compNameText)}">${compNameHtml}</td>
-        <td class="${gstNoClass}" data-copy-val="${escapeHtml(gstNoText)}">${gstNoHtml}</td>
-        <td class="${hsnClass}" data-copy-val="${escapeHtml(item.hsnCode || '')}">${hsnHtml}</td>
-        <td class="${qtyClass}" data-copy-val="${qtyNum}">${qtyHtml}</td>
-        <td class="${basicClass}" data-copy-val="${formatNumber(basicNum)}">${basicHtml}</td>
-        <td class="${sgstClass}" data-copy-val="${formatNumber(sgstNum)}">${sgstHtml}</td>
-        <td class="${cgstClass}" data-copy-val="${formatNumber(cgstNum)}">${cgstHtml}</td>
-        <td class="${igstClass}" data-copy-val="${formatNumber(igstNum)}">${igstHtml}</td>
-        <td class="num-col" data-copy-val="${formatNumber(lineTotal)}">${formatNumber(lineTotal)}</td>
-        <td class="${remarksClass}" data-copy-val="${escapeHtml(item.remarks || '')}">${remarksHtml}</td>
+        <td class="${invNoClass}" data-col="invNo" data-copy-val="${escapeHtml(invNoText)}">${invNoHtml}</td>
+        <td class="${invDateClass}" data-col="invDate" data-copy-val="${escapeHtml(invDateText)}">${invDateHtml}</td>
+        <td class="${compNameClass}" data-col="companyName" data-copy-val="${escapeHtml(compNameText)}">${compNameHtml}</td>
+        <td class="${gstNoClass}" data-col="gstNo" data-copy-val="${escapeHtml(gstNoText)}">${gstNoHtml}</td>
+        <td class="${hsnClass}" data-col="hsnCode" data-copy-val="${escapeHtml(item.hsnCode || '')}">${hsnHtml}</td>
+        <td class="${qtyClass}" data-col="qty" data-copy-val="${qtyNum}">${qtyHtml}</td>
+        <td class="${basicClass}" data-col="basicAmount" data-copy-val="${formatNumber(basicNum)}">${basicHtml}</td>
+        <td class="${sgstClass}" data-col="sgst" data-copy-val="${formatNumber(sgstNum)}">${sgstHtml}</td>
+        <td class="${cgstClass}" data-col="cgst" data-copy-val="${formatNumber(cgstNum)}">${cgstHtml}</td>
+        <td class="${igstClass}" data-col="igst" data-copy-val="${formatNumber(igstNum)}">${igstHtml}</td>
+        <td class="num-col" data-col="totalAmount" data-copy-val="${formatNumber(lineTotal)}">${formatNumber(lineTotal)}</td>
+        <td class="${remarksClass}" data-col="remarks" data-copy-val="${escapeHtml(item.remarks || '')}">${remarksHtml}</td>
       `;
 
       tableBody.appendChild(tr);
@@ -900,18 +900,18 @@ function renderTable() {
   const totalGrand = totalBasic + totalSgst + totalCgst + totalIgst;
   const footTr = document.createElement('tr');
   footTr.innerHTML = `
-    <td></td>
-    <td></td>
-    <td data-copy-val="Total"><strong>Total</strong></td>
-    <td></td>
-    <td></td>
-    <td class="num-col" data-copy-val="${totalQty}"><strong>${totalQty}</strong></td>
-    <td class="num-col" data-copy-val="${formatNumber(totalBasic)}"><strong>${formatNumber(totalBasic)}</strong></td>
-    <td class="num-col" data-copy-val="${formatNumber(totalSgst)}"><strong>${formatNumber(totalSgst)}</strong></td>
-    <td class="num-col" data-copy-val="${formatNumber(totalCgst)}"><strong>${formatNumber(totalCgst)}</strong></td>
-    <td class="num-col" data-copy-val="${formatNumber(totalIgst)}"><strong>${formatNumber(totalIgst)}</strong></td>
-    <td class="num-col" data-copy-val="${formatNumber(totalGrand)}"><strong>${formatNumber(totalGrand)}</strong></td>
-    <td></td>
+    <td data-col="invNo"></td>
+    <td data-col="invDate"></td>
+    <td data-col="companyName" data-copy-val="Total"><strong>Total</strong></td>
+    <td data-col="gstNo"></td>
+    <td data-col="hsnCode"></td>
+    <td data-col="qty" class="num-col" data-copy-val="${totalQty}"><strong>${totalQty}</strong></td>
+    <td data-col="basicAmount" class="num-col" data-copy-val="${formatNumber(totalBasic)}"><strong>${formatNumber(totalBasic)}</strong></td>
+    <td data-col="sgst" class="num-col" data-copy-val="${formatNumber(totalSgst)}"><strong>${formatNumber(totalSgst)}</strong></td>
+    <td data-col="cgst" class="num-col" data-copy-val="${formatNumber(totalCgst)}"><strong>${formatNumber(totalCgst)}</strong></td>
+    <td data-col="igst" class="num-col" data-copy-val="${formatNumber(totalIgst)}"><strong>${formatNumber(totalIgst)}</strong></td>
+    <td data-col="totalAmount" class="num-col" data-copy-val="${formatNumber(totalGrand)}"><strong>${formatNumber(totalGrand)}</strong></td>
+    <td data-col="remarks"></td>
   `;
   tableFoot.appendChild(footTr);
 
@@ -1055,6 +1055,7 @@ btnExportCsv.addEventListener('click', async () => {
 });
 
 // Copy Data (TSV format for direct paste into Excel or Google Sheets)
+// Copy Data (TSV format for direct paste into Excel or Google Sheets, respecting visible columns)
 btnCopyTable.addEventListener('click', () => {
   if (processedInvoices.length === 0) return;
 
@@ -1062,48 +1063,45 @@ btnCopyTable.addEventListener('click', () => {
   const displayInvoices = getDisplayInvoices();
   const lines = [];
 
+  const visibleCols = TABLE1_COL_DEFS.filter(c => !hiddenTable1Cols.has(c.id));
+  if (visibleCols.length === 0) {
+    showCopyToast('No visible columns to copy', '', 'info');
+    return;
+  }
+
   // Super Header
-  lines.push(`OUT INV\t${periodTitleInput.value.trim() || 'April-June 2025-26'}`);
+  const hasInvNo = !hiddenTable1Cols.has('invNo');
+  const otherVisibleCount = TABLE1_COL_DEFS.slice(1).filter(c => !hiddenTable1Cols.has(c.id)).length;
+  if (hasInvNo && otherVisibleCount > 0) {
+    lines.push(`OUT INV\t${periodTitleInput.value.trim() || 'April-June 2025-26'}`);
+  } else if (otherVisibleCount > 0) {
+    lines.push(periodTitleInput.value.trim() || 'April-June 2025-26');
+  }
+
   // Columns
-  lines.push('INVOICE NO\tINV DATE\tCompany Name\tGST NO\tHSN Code\tQty\tBASIC AMOUNT\tSGST\tCGST\tIGST\tTOTAL AMOUNT\tdescription / remarks');
+  lines.push(visibleCols.map(c => c.label).join('\t'));
 
   displayInvoices.forEach(inv => {
     if (!inv.items) return;
     inv.items.forEach((item, idx) => {
       const showHeader = idx === 0 || repeatInfo;
-      const basicNum = item.basicAmount || 0;
-      const sgstNum = item.sgst || 0;
-      const cgstNum = item.cgst || 0;
-      const igstNum = item.igst || 0;
-      const lineTotal = basicNum + sgstNum + cgstNum + igstNum;
-
-      const row = [
-        showHeader ? (inv.invoiceNo || '') : '',
-        showHeader ? (inv.invoiceDate || '') : '',
-        showHeader ? (inv.companyName || '') : '',
-        showHeader ? (inv.gstNo || '') : '',
-        item.hsnCode || '',
-        item.qty || 0,
-        item.basicAmount || 0,
-        item.sgst || 0,
-        item.cgst || 0,
-        item.igst || 0,
-        lineTotal.toFixed(2),
-        item.remarks || '',
-      ];
+      const row = visibleCols.map(c => c.getVal(inv, item, showHeader));
       lines.push(row.join('\t'));
     });
   });
 
   const text = lines.join('\n');
-  navigator.clipboard.writeText(text).then(() => {
-    const originalText = btnCopyTable.textContent;
-    btnCopyTable.textContent = 'Copied to Clipboard!';
-    setTimeout(() => {
-      btnCopyTable.textContent = originalText;
-    }, 2000);
-  }).catch(() => {
-    alert('Unable to copy to clipboard.');
+  copyTextToClipboard(text).then((success) => {
+    if (success) {
+      const originalText = btnCopyTable.textContent;
+      btnCopyTable.textContent = 'Copied to Clipboard!';
+      setTimeout(() => {
+        btnCopyTable.textContent = originalText;
+      }, 2000);
+      showCopyToast('Table data copied (TSV format)', `${visibleCols.length} columns`);
+    } else {
+      alert('Unable to copy to clipboard.');
+    }
   });
 });
 
@@ -1596,15 +1594,15 @@ function renderHsnResults(data) {
     }
 
     tr.innerHTML = `
-      <td class="${hsnClass}" data-copy-val="${escapeHtml(g.hsnCode)}">${hsnHtml}</td>
-      <td data-copy-val="${escapeHtml(g.taxCategory)}"><span class="badge-tax-cat ${catBadgeClass}">${escapeHtml(g.taxCategory)}</span></td>
-      <td class="num-col" data-copy-val="${g.invoiceLines}">${g.invoiceLines}</td>
-      <td class="${qtyClass}" data-copy-val="${(g.quantity || 0).toLocaleString('en-IN')}">${qtyHtml}</td>
-      <td class="num-col" data-copy-val="${formatNumber(g.basicAmount)}">${formatNumber(g.basicAmount)}</td>
-      <td class="${sgstClass}" data-copy-val="${formatNumber(g.sgst)}">${sgstHtml}</td>
-      <td class="${cgstClass}" data-copy-val="${formatNumber(g.cgst)}">${cgstHtml}</td>
-      <td class="num-col" data-copy-val="${formatNumber(g.igst)}">${formatNumber(g.igst)}</td>
-      <td class="num-col font-bold" data-copy-val="${formatNumber(g.totalInclGst)}">${formatNumber(g.totalInclGst)}</td>
+      <td class="${hsnClass}" data-col="hsnHsn" data-copy-val="${escapeHtml(g.hsnCode)}">${hsnHtml}</td>
+      <td data-col="hsnTaxCat" data-copy-val="${escapeHtml(g.taxCategory)}"><span class="badge-tax-cat ${catBadgeClass}">${escapeHtml(g.taxCategory)}</span></td>
+      <td class="num-col" data-col="hsnLines" data-copy-val="${g.invoiceLines}">${g.invoiceLines}</td>
+      <td class="${qtyClass}" data-col="hsnQty" data-copy-val="${(g.quantity || 0).toLocaleString('en-IN')}">${qtyHtml}</td>
+      <td class="num-col" data-col="hsnBasic" data-copy-val="${formatNumber(g.basicAmount)}">${formatNumber(g.basicAmount)}</td>
+      <td class="${sgstClass}" data-col="hsnSgst" data-copy-val="${formatNumber(g.sgst)}">${sgstHtml}</td>
+      <td class="${cgstClass}" data-col="hsnCgst" data-copy-val="${formatNumber(g.cgst)}">${cgstHtml}</td>
+      <td class="num-col" data-col="hsnIgst" data-copy-val="${formatNumber(g.igst)}">${formatNumber(g.igst)}</td>
+      <td class="num-col font-bold" data-col="hsnTotal" data-copy-val="${formatNumber(g.totalInclGst)}">${formatNumber(g.totalInclGst)}</td>
     `;
     hsnTableBody.appendChild(tr);
   });
@@ -1612,15 +1610,15 @@ function renderHsnResults(data) {
   // Render Table Foot (Matching reference image Row 23 light blue)
   hsnTableFoot.innerHTML = `
     <tr>
-      <td data-copy-val="GRAND TOTAL"><strong>GRAND TOTAL</strong></td>
-      <td></td>
-      <td class="num-col" data-copy-val="${summary.totalLines}"><strong>${summary.totalLines}</strong></td>
-      <td class="num-col" data-copy-val="${(summary.totalQty || 0).toLocaleString('en-IN')}"><strong>${(summary.totalQty || 0).toLocaleString('en-IN')}</strong></td>
-      <td class="num-col" data-copy-val="${formatNumber(summary.totalBasic)}"><strong>${formatNumber(summary.totalBasic)}</strong></td>
-      <td class="num-col" data-copy-val="${formatNumber(summary.totalSgst)}"><strong>${formatNumber(summary.totalSgst)}</strong></td>
-      <td class="num-col" data-copy-val="${formatNumber(summary.totalCgst)}"><strong>${formatNumber(summary.totalCgst)}</strong></td>
-      <td class="num-col" data-copy-val="${formatNumber(summary.totalIgst)}"><strong>${formatNumber(summary.totalIgst)}</strong></td>
-      <td class="num-col" data-copy-val="${formatNumber(summary.totalGrand)}"><strong>${formatNumber(summary.totalGrand)}</strong></td>
+      <td data-col="hsnHsn" data-copy-val="GRAND TOTAL"><strong>GRAND TOTAL</strong></td>
+      <td data-col="hsnTaxCat"></td>
+      <td data-col="hsnLines" class="num-col" data-copy-val="${summary.totalLines}"><strong>${summary.totalLines}</strong></td>
+      <td data-col="hsnQty" class="num-col" data-copy-val="${(summary.totalQty || 0).toLocaleString('en-IN')}"><strong>${(summary.totalQty || 0).toLocaleString('en-IN')}</strong></td>
+      <td data-col="hsnBasic" class="num-col" data-copy-val="${formatNumber(summary.totalBasic)}"><strong>${formatNumber(summary.totalBasic)}</strong></td>
+      <td data-col="hsnSgst" class="num-col" data-copy-val="${formatNumber(summary.totalSgst)}"><strong>${formatNumber(summary.totalSgst)}</strong></td>
+      <td data-col="hsnCgst" class="num-col" data-copy-val="${formatNumber(summary.totalCgst)}"><strong>${formatNumber(summary.totalCgst)}</strong></td>
+      <td data-col="hsnIgst" class="num-col" data-copy-val="${formatNumber(summary.totalIgst)}"><strong>${formatNumber(summary.totalIgst)}</strong></td>
+      <td data-col="hsnTotal" class="num-col" data-copy-val="${formatNumber(summary.totalGrand)}"><strong>${formatNumber(summary.totalGrand)}</strong></td>
     </tr>
   `;
 
@@ -1715,10 +1713,16 @@ if (btnExportHsnCsv) {
   });
 }
 
-// Copy HSN Summary Table as TSV for direct paste into Excel
+// Copy HSN Summary Table as TSV for direct paste into Excel, respecting visible columns
 if (btnCopyHsnTable) {
   btnCopyHsnTable.addEventListener('click', () => {
     if (!currentHsnData || !currentHsnData.groups || currentHsnData.groups.length === 0) return;
+
+    const visibleCols = TABLE2_COL_DEFS.filter(c => !hiddenTable2Cols.has(c.id));
+    if (visibleCols.length === 0) {
+      showCopyToast('No visible columns to copy', '', 'info');
+      return;
+    }
 
     const period = hsnPeriodInput.value.trim() || currentHsnData.periodTitle || 'July–September 2026';
     const lines = [];
@@ -1726,44 +1730,27 @@ if (btnCopyHsnTable) {
     lines.push(`HSN-wise GST Summary | ${period}`);
     lines.push('Original invoice TOTAL row excluded; zero GST basic shown separately.');
     lines.push('');
-    lines.push('HSN Code\tTax Category\tInvoice Lines\tQuantity\tBasic Amount\tSGST\tCGST\tIGST\tTotal incl. GST');
+    lines.push(visibleCols.map(c => c.label).join('\t'));
 
     currentHsnData.groups.forEach(g => {
-      lines.push([
-        g.hsnCode || '',
-        g.taxCategory || '',
-        g.invoiceLines || 0,
-        g.quantity || 0,
-        g.basicAmount || 0,
-        g.sgst || 0,
-        g.cgst || 0,
-        g.igst || 0,
-        g.totalInclGst || 0,
-      ].join('\t'));
+      lines.push(visibleCols.map(c => c.getVal(g)).join('\t'));
     });
 
     const s = currentHsnData.summary;
-    lines.push([
-      'GRAND TOTAL',
-      '',
-      s.totalLines || 0,
-      s.totalQty || 0,
-      s.totalBasic || 0,
-      s.totalSgst || 0,
-      s.totalCgst || 0,
-      s.totalIgst || 0,
-      s.totalGrand || 0,
-    ].join('\t'));
+    lines.push(visibleCols.map(c => c.getTotalVal(s)).join('\t'));
 
     const text = lines.join('\n');
-    navigator.clipboard.writeText(text).then(() => {
-      const origText = btnCopyHsnTable.textContent;
-      btnCopyHsnTable.textContent = 'Copied to Clipboard!';
-      setTimeout(() => {
-        btnCopyHsnTable.textContent = origText;
-      }, 2000);
-    }).catch(() => {
-      alert('Unable to copy to clipboard.');
+    copyTextToClipboard(text).then((success) => {
+      if (success) {
+        const origText = btnCopyHsnTable.textContent;
+        btnCopyHsnTable.textContent = 'Copied to Clipboard!';
+        setTimeout(() => {
+          btnCopyHsnTable.textContent = origText;
+        }, 2000);
+        showCopyToast('HSN Summary copied (TSV format)', `${visibleCols.length} columns`);
+      } else {
+        alert('Unable to copy to clipboard.');
+      }
     });
   });
 }
@@ -1943,3 +1930,348 @@ document.addEventListener('mouseover', (e) => {
     }
   }
 });
+
+/* ==========================================================================
+   COLUMN MANAGEMENT & FULLSCREEN TABLE IMPLEMENTATION
+   ========================================================================== */
+
+// Column Definitions for Table 1 (Cumulative Invoices)
+const TABLE1_COL_DEFS = [
+  { id: 'invNo', label: 'INVOICE NO', getVal: (inv, item, showHeader) => showHeader ? (inv.invoiceNo || '') : '' },
+  { id: 'invDate', label: 'INV DATE', getVal: (inv, item, showHeader) => showHeader ? (inv.invoiceDate || '') : '' },
+  { id: 'companyName', label: 'Company Name', getVal: (inv, item, showHeader) => showHeader ? (inv.companyName || '') : '' },
+  { id: 'gstNo', label: 'GST NO', getVal: (inv, item, showHeader) => showHeader ? (inv.gstNo || '') : '' },
+  { id: 'hsnCode', label: 'HSN Code', getVal: (inv, item) => item.hsnCode || '' },
+  { id: 'qty', label: 'Qty', getVal: (inv, item) => item.qty || 0 },
+  { id: 'basicAmount', label: 'BASIC AMOUNT', getVal: (inv, item) => item.basicAmount || 0 },
+  { id: 'sgst', label: 'SGST', getVal: (inv, item) => item.sgst || 0 },
+  { id: 'cgst', label: 'CGST', getVal: (inv, item) => item.cgst || 0 },
+  { id: 'igst', label: 'IGST', getVal: (inv, item) => item.igst || 0 },
+  { id: 'totalAmount', label: 'TOTAL AMOUNT', getVal: (inv, item) => ((item.basicAmount || 0) + (item.sgst || 0) + (item.cgst || 0) + (item.igst || 0)).toFixed(2) },
+  { id: 'remarks', label: 'description / remarks', getVal: (inv, item) => item.remarks || '' },
+];
+
+// Column Definitions for Table 2 (HSN Summary)
+const TABLE2_COL_DEFS = [
+  { id: 'hsnHsn', label: 'HSN Code', getVal: g => g.hsnCode || '', getTotalVal: () => 'GRAND TOTAL' },
+  { id: 'hsnTaxCat', label: 'Tax Category', getVal: g => g.taxCategory || '', getTotalVal: () => '' },
+  { id: 'hsnLines', label: 'Invoice Lines', getVal: g => g.invoiceLines || 0, getTotalVal: s => s.totalLines || 0 },
+  { id: 'hsnQty', label: 'Quantity', getVal: g => g.quantity || 0, getTotalVal: s => s.totalQty || 0 },
+  { id: 'hsnBasic', label: 'Basic Amount', getVal: g => g.basicAmount || 0, getTotalVal: s => s.totalBasic || 0 },
+  { id: 'hsnSgst', label: 'SGST', getVal: g => g.sgst || 0, getTotalVal: s => s.totalSgst || 0 },
+  { id: 'hsnCgst', label: 'CGST', getVal: g => g.cgst || 0, getTotalVal: s => s.totalCgst || 0 },
+  { id: 'hsnIgst', label: 'IGST', getVal: g => g.igst || 0, getTotalVal: s => s.totalIgst || 0 },
+  { id: 'hsnTotal', label: 'Total incl. GST', getVal: g => g.totalInclGst || 0, getTotalVal: s => s.totalGrand || 0 },
+];
+
+const hiddenTable1Cols = new Set();
+const hiddenTable2Cols = new Set();
+
+// Style tags for dynamic column visibility injection
+let styleTable1Cols = document.getElementById('styleTable1Cols');
+if (!styleTable1Cols) {
+  styleTable1Cols = document.createElement('style');
+  styleTable1Cols.id = 'styleTable1Cols';
+  document.head.appendChild(styleTable1Cols);
+}
+
+let styleTable2Cols = document.getElementById('styleTable2Cols');
+if (!styleTable2Cols) {
+  styleTable2Cols = document.createElement('style');
+  styleTable2Cols.id = 'styleTable2Cols';
+  document.head.appendChild(styleTable2Cols);
+}
+
+// Table 1 Controls
+const btnManageCols = document.getElementById('btnManageCols');
+const colDropdownMenu = document.getElementById('colDropdownMenu');
+const colCheckboxList = document.getElementById('colCheckboxList');
+const btnResetCols = document.getElementById('btnResetCols');
+const colBtnText = document.getElementById('colBtnText');
+const btnToggleFullscreen = document.getElementById('btnToggleFullscreen');
+const fsBtnText = document.getElementById('fsBtnText');
+
+// Table 2 Controls
+const btnManageHsnCols = document.getElementById('btnManageHsnCols');
+const hsnColDropdownMenu = document.getElementById('hsnColDropdownMenu');
+const hsnColCheckboxList = document.getElementById('hsnColCheckboxList');
+const btnResetHsnCols = document.getElementById('btnResetHsnCols');
+const hsnColBtnText = document.getElementById('hsnColBtnText');
+const btnToggleHsnFullscreen = document.getElementById('btnToggleHsnFullscreen');
+const hsnFsBtnText = document.getElementById('hsnFsBtnText');
+
+// Apply Table 1 column hiding and update headers
+function applyTable1ColVisibility() {
+  if (hiddenTable1Cols.size === 0) {
+    styleTable1Cols.textContent = '';
+    if (colBtnText) colBtnText.innerHTML = 'Columns';
+  } else {
+    const rules = Array.from(hiddenTable1Cols)
+      .map(id => `#dataTable [data-col="${id}"] { display: none !important; }`)
+      .join('\n');
+    styleTable1Cols.textContent = rules;
+    if (colBtnText) {
+      colBtnText.innerHTML = `Columns <span class="col-hidden-badge">${hiddenTable1Cols.size} hidden</span>`;
+    }
+  }
+
+  // Adjust super-header colspan for OUT INV | Period Title
+  if (tableHeaderPeriod) {
+    const visiblePeriodCount = TABLE1_COL_DEFS.slice(1).filter(c => !hiddenTable1Cols.has(c.id)).length;
+    if (visiblePeriodCount === 0) {
+      tableHeaderPeriod.style.display = 'none';
+    } else {
+      tableHeaderPeriod.style.display = '';
+      tableHeaderPeriod.colSpan = visiblePeriodCount;
+    }
+  }
+
+  // Sync checkboxes
+  if (colCheckboxList) {
+    const inputs = colCheckboxList.querySelectorAll('input[type="checkbox"]');
+    inputs.forEach(input => {
+      const colId = input.getAttribute('data-col-id');
+      input.checked = !hiddenTable1Cols.has(colId);
+    });
+  }
+}
+
+// Render Table 1 checkboxes inside dropdown
+function renderTable1ColCheckboxes() {
+  if (!colCheckboxList) return;
+  colCheckboxList.innerHTML = '';
+
+  TABLE1_COL_DEFS.forEach(col => {
+    const labelEl = document.createElement('label');
+    labelEl.className = 'col-checkbox-label';
+    labelEl.innerHTML = `
+      <input type="checkbox" data-col-id="${col.id}" ${!hiddenTable1Cols.has(col.id) ? 'checked' : ''}>
+      <span>${escapeHtml(col.label)}</span>
+    `;
+
+    const input = labelEl.querySelector('input');
+    input.addEventListener('change', () => {
+      if (input.checked) {
+        hiddenTable1Cols.delete(col.id);
+      } else {
+        if (hiddenTable1Cols.size >= TABLE1_COL_DEFS.length - 1) {
+          input.checked = true;
+          showCopyToast('At least one column must stay visible', '', 'info');
+          return;
+        }
+        hiddenTable1Cols.add(col.id);
+      }
+      applyTable1ColVisibility();
+    });
+
+    colCheckboxList.appendChild(labelEl);
+  });
+}
+
+// Apply Table 2 column hiding
+function applyTable2ColVisibility() {
+  if (hiddenTable2Cols.size === 0) {
+    styleTable2Cols.textContent = '';
+    if (hsnColBtnText) hsnColBtnText.innerHTML = 'Columns';
+  } else {
+    const rules = Array.from(hiddenTable2Cols)
+      .map(id => `#hsnDataTable [data-col="${id}"] { display: none !important; }`)
+      .join('\n');
+    styleTable2Cols.textContent = rules;
+    if (hsnColBtnText) {
+      hsnColBtnText.innerHTML = `Columns <span class="col-hidden-badge">${hiddenTable2Cols.size} hidden</span>`;
+    }
+  }
+
+  // Sync checkboxes
+  if (hsnColCheckboxList) {
+    const inputs = hsnColCheckboxList.querySelectorAll('input[type="checkbox"]');
+    inputs.forEach(input => {
+      const colId = input.getAttribute('data-col-id');
+      input.checked = !hiddenTable2Cols.has(colId);
+    });
+  }
+}
+
+// Render Table 2 checkboxes inside dropdown
+function renderTable2ColCheckboxes() {
+  if (!hsnColCheckboxList) return;
+  hsnColCheckboxList.innerHTML = '';
+
+  TABLE2_COL_DEFS.forEach(col => {
+    const labelEl = document.createElement('label');
+    labelEl.className = 'col-checkbox-label';
+    labelEl.innerHTML = `
+      <input type="checkbox" data-col-id="${col.id}" ${!hiddenTable2Cols.has(col.id) ? 'checked' : ''}>
+      <span>${escapeHtml(col.label)}</span>
+    `;
+
+    const input = labelEl.querySelector('input');
+    input.addEventListener('change', () => {
+      if (input.checked) {
+        hiddenTable2Cols.delete(col.id);
+      } else {
+        if (hiddenTable2Cols.size >= TABLE2_COL_DEFS.length - 1) {
+          input.checked = true;
+          showCopyToast('At least one column must stay visible', '', 'info');
+          return;
+        }
+        hiddenTable2Cols.add(col.id);
+      }
+      applyTable2ColVisibility();
+    });
+
+    hsnColCheckboxList.appendChild(labelEl);
+  });
+}
+
+// Wire Header [x] Column Close Buttons
+document.addEventListener('click', (e) => {
+  const closeBtn = e.target.closest('.btn-col-close');
+  if (!closeBtn) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const colId = closeBtn.getAttribute('data-hide-col');
+  if (!colId) return;
+
+  // Determine which table this header belongs to
+  const table = closeBtn.closest('table');
+  if (table && table.id === 'dataTable') {
+    if (hiddenTable1Cols.size >= TABLE1_COL_DEFS.length - 1) {
+      showCopyToast('At least one column must remain visible', '', 'info');
+      return;
+    }
+    const def = TABLE1_COL_DEFS.find(c => c.id === colId);
+    hiddenTable1Cols.add(colId);
+    applyTable1ColVisibility();
+    showCopyToast(`Closed column: "${def ? def.label : colId}"`, 'Restore from Columns dropdown');
+  } else if (table && table.id === 'hsnDataTable') {
+    if (hiddenTable2Cols.size >= TABLE2_COL_DEFS.length - 1) {
+      showCopyToast('At least one column must remain visible', '', 'info');
+      return;
+    }
+    const def = TABLE2_COL_DEFS.find(c => c.id === colId);
+    hiddenTable2Cols.add(colId);
+    applyTable2ColVisibility();
+    showCopyToast(`Closed column: "${def ? def.label : colId}"`, 'Restore from Columns dropdown');
+  }
+});
+
+// Dropdown Toggle & Outside Click Handlers
+if (btnManageCols && colDropdownMenu) {
+  btnManageCols.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (hsnColDropdownMenu) hsnColDropdownMenu.classList.remove('show');
+    colDropdownMenu.classList.toggle('show');
+  });
+}
+
+if (btnResetCols) {
+  btnResetCols.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hiddenTable1Cols.clear();
+    applyTable1ColVisibility();
+    showCopyToast('All columns restored', 'Table 1');
+  });
+}
+
+if (btnManageHsnCols && hsnColDropdownMenu) {
+  btnManageHsnCols.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (colDropdownMenu) colDropdownMenu.classList.remove('show');
+    hsnColDropdownMenu.classList.toggle('show');
+  });
+}
+
+if (btnResetHsnCols) {
+  btnResetHsnCols.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hiddenTable2Cols.clear();
+    applyTable2ColVisibility();
+    showCopyToast('All columns restored', 'HSN Summary');
+  });
+}
+
+// Stop clicks inside dropdown menus from closing them
+[colDropdownMenu, hsnColDropdownMenu].forEach(menu => {
+  if (menu) {
+    menu.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+});
+
+// Click outside closes both dropdowns
+document.addEventListener('click', () => {
+  if (colDropdownMenu) colDropdownMenu.classList.remove('show');
+  if (hsnColDropdownMenu) hsnColDropdownMenu.classList.remove('show');
+});
+
+// ==========================================================================
+// FULLSCREEN LOGIC FOR TABLE 1 & TABLE 2
+// ==========================================================================
+
+const table1Card = document.querySelector('#resultsSection .table-card');
+const table2Card = document.querySelector('#viewHsnSummary .table-card');
+
+function toggleTableFullscreen(card, btn, btnTextEl, tableName) {
+  if (!card) return;
+  const isNowFullscreen = card.classList.toggle('is-fullscreen');
+
+  if (isNowFullscreen) {
+    document.body.classList.add('has-table-fullscreen');
+    if (btn) btn.classList.add('is-active-fs');
+    if (btnTextEl) btnTextEl.textContent = 'Exit Fullscreen';
+    showCopyToast(`Fullscreen: ${tableName}`, 'Press Esc to exit', 'info');
+  } else {
+    document.body.classList.remove('has-table-fullscreen');
+    if (btn) btn.classList.remove('is-active-fs');
+    if (btnTextEl) btnTextEl.textContent = 'Fullscreen';
+  }
+}
+
+function exitAllFullscreen() {
+  let exited = false;
+  [
+    { card: table1Card, btn: btnToggleFullscreen, text: fsBtnText },
+    { card: table2Card, btn: btnToggleHsnFullscreen, text: hsnFsBtnText }
+  ].forEach(item => {
+    if (item.card && item.card.classList.contains('is-fullscreen')) {
+      item.card.classList.remove('is-fullscreen');
+      if (item.btn) item.btn.classList.remove('is-active-fs');
+      if (item.text) item.text.textContent = 'Fullscreen';
+      exited = true;
+    }
+  });
+
+  if (exited) {
+    document.body.classList.remove('has-table-fullscreen');
+    showCopyToast('Exited Fullscreen', '', 'info');
+  }
+}
+
+if (btnToggleFullscreen) {
+  btnToggleFullscreen.addEventListener('click', () => {
+    toggleTableFullscreen(table1Card, btnToggleFullscreen, fsBtnText, 'Cumulative Invoice Sheet');
+  });
+}
+
+if (btnToggleHsnFullscreen) {
+  btnToggleHsnFullscreen.addEventListener('click', () => {
+    toggleTableFullscreen(table2Card, btnToggleHsnFullscreen, hsnFsBtnText, 'HSN Summary Sheet');
+  });
+}
+
+// Global Escape Key to exit fullscreen
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    exitAllFullscreen();
+  }
+});
+
+// Initialize Checkboxes
+renderTable1ColCheckboxes();
+renderTable2ColCheckboxes();
+

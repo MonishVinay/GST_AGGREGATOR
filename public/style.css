@@ -1384,3 +1384,239 @@ td.cell-has-error:hover {
   border: 1px solid #334155;
 }
 
+/* ==========================================================================
+   TABLE FULLSCREEN & COLUMN MANAGEMENT STYLES
+   ========================================================================== */
+
+/* Fullscreen Table Card */
+.table-card.is-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  z-index: 9999 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: none !important;
+  background: #ffffff !important;
+}
+
+.table-card.is-fullscreen .table-toolbar {
+  flex-shrink: 0;
+  border-radius: 0;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 12px 20px;
+}
+
+.table-card.is-fullscreen .table-wrapper {
+  flex: 1 1 auto;
+  max-height: none !important;
+  height: 100%;
+  overflow: auto;
+}
+
+.table-card.is-fullscreen .table-footer-info {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-color);
+  background-color: #f8fafc;
+}
+
+body.has-table-fullscreen {
+  overflow: hidden !important;
+}
+
+/* Fullscreen Button Active Highlight */
+.btn.is-active-fs {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+}
+
+.btn.is-active-fs:hover {
+  background-color: #1e293b !important;
+}
+
+/* Column Header with Hover Close Button */
+.th-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 6px;
+  position: relative;
+}
+
+.cumulative-table th.num-col .th-content,
+.hsn-summary-table th.num-col .th-content {
+  justify-content: flex-end;
+}
+
+.cumulative-table th.num-col .th-content span,
+.hsn-summary-table th.num-col .th-content span {
+  order: 1;
+}
+
+.cumulative-table th.num-col .btn-col-close,
+.hsn-summary-table th.num-col .btn-col-close {
+  order: 2;
+}
+
+.btn-col-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+  padding: 0;
+  margin-left: 4px;
+  user-select: none;
+  font-weight: 700;
+}
+
+th:hover .btn-col-close {
+  opacity: 0.7;
+}
+
+.btn-col-close:hover {
+  opacity: 1 !important;
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Header style for HSN Navy table */
+.header-hsn-navy .btn-col-close {
+  color: #94a3b8;
+}
+
+.header-hsn-navy .btn-col-close:hover {
+  background-color: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+/* Column Dropdown Container & Menu */
+.col-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.col-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 1000;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  min-width: 240px;
+  max-height: 400px;
+  overflow-y: auto;
+  display: none;
+  padding: 4px 0;
+}
+
+.col-dropdown-menu.show {
+  display: block;
+  animation: dropdownFadeIn 0.18s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.col-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+  border-bottom: 1px solid #f1f5f9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #fafafa;
+}
+
+.btn-reset-cols {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: none;
+  letter-spacing: normal;
+  transition: all 0.12s ease;
+}
+
+.btn-reset-cols:hover {
+  background: #e0f2fe;
+  color: #0369a1;
+  text-decoration: underline;
+}
+
+.col-dropdown-list {
+  padding: 4px 0;
+}
+
+.col-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  font-size: 13px;
+  color: #1e293b;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s ease;
+}
+
+.col-checkbox-label:hover {
+  background-color: #f1f5f9;
+}
+
+.col-checkbox-label input[type="checkbox"] {
+  accent-color: var(--primary-color);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.col-hidden-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ef4444;
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 4px;
+  line-height: 1.2;
+}
+
+
