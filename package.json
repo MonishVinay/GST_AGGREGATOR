@@ -1,0 +1,28 @@
+{
+  "name": "tax-invoice-cumulative-aggregator",
+  "version": "1.0.0",
+  "description": "Cumulate 50 to 150+ Excel invoices into a single structured report",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "gst",
+    "invoice",
+    "excel",
+    "aggregator",
+    "tax-invoice"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "xlsx": "^0.18.5"
+  }
+}

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GST Invoice Cumulative Aggregator</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navigation / Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="8" y1="13" x2="16" y2="13"></line>
+            <line x1="8" y1="17" x2="16" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div>
+          <h1>GST Invoice Aggregator</h1>
+          <p class="subtitle">Cumulate 50 to 150+ Excel Invoices into a Single Formatted Report</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="btnOpenDeployModal" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          Deploy to Render / Run Locally
+        </button>
+      </div>
+    </header>
+
+    <!-- Functional Workflow Navigation -->
+    <nav class="function-nav-bar" id="functionNavBar">
+      <button class="func-tab-btn active" data-tab-target="viewConsolidator">
+        <div class="func-tab-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          <span>Consolidate Invoices</span>
+        </div>
+        <span class="func-tab-desc">Batch 50–150+ Invoices &rarr; Cumulative Sales Register</span>
+      </button>
+
+      <button class="func-tab-btn" data-tab-target="viewHsnSummary">
+        <div class="func-tab-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+          <span>HSN-wise GST Summary</span>
+          <span class="nav-badge-new">New</span>
+        </div>
+        <span class="func-tab-desc">Upload Modified Cumulative Sheet &rarr; HSN Summary</span>
+      </button>
+
+      <button class="func-tab-btn disabled-func-tab" data-tab-target="viewReconciliation" title="Reconciliation Module - Coming Soon">
+        <div class="func-tab-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Reconciliation & Filing</span>
+          <span class="badge-mini-soon">Coming Soon</span>
+        </div>
+        <span class="func-tab-desc">GSTR-1 & Portal Cross-Matching</span>
+      </button>
+    </nav>
+
+    <!-- VIEW 1: CONSOLIDATE SALES INVOICES -->
+    <main id="viewConsolidator" class="view-panel active">
+      <!-- Upload & Configuration Section -->
+      <section class="card upload-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="step-badge">1</span>
+            <h3>Upload Invoices</h3>
+          </div>
+        <div class="badge badge-info">Capacity: Up to 150+ Excel files (.xlsx, .xls)</div>
+      </div>
+
+      <div class="upload-area" id="dropZone">
+        <input type="file" id="fileInput" multiple accept=".xlsx, .xls" class="file-input-hidden">
+        <div class="upload-icon-container">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </div>
+        <div class="upload-text">
+          <p class="primary-text">Drag & drop your Excel invoice files here or <span class="highlight-link">browse</span></p>
+          <p class="secondary-text">Select 50, 100, or up to 150+ tax invoice spreadsheets (.xlsx or .xls)</p>
+        </div>
+        <div id="fileSelectedBadge" class="file-count-badge hidden">
+          <span id="fileCountNumber">0</span> files selected
+        </div>
+      </div>
+
+      <!-- Settings & Action Row -->
+      <div class="config-bar">
+        <div class="config-item">
+          <label for="periodTitleInput">Report Period / Title</label>
+          <input type="text" id="periodTitleInput" value="April-June 2025-26" placeholder="e.g. April-June 2025-26">
+        </div>
+
+        <div class="config-item">
+          <label for="sortOrderSelect">Sort Invoices By</label>
+          <select id="sortOrderSelect">
+            <option value="invoiceNo">Invoice Number (TS-01, TS-02...)</option>
+            <option value="date">Invoice Date</option>
+            <option value="file">Original File Order</option>
+          </select>
+        </div>
+
+        <div class="config-item checkbox-item">
+          <label class="checkbox-container">
+            <input type="checkbox" id="repeatInvoiceInfoToggle">
+            <span class="checkmark"></span>
+            Repeat Invoice details on every row
+          </label>
+          <span class="help-text">(Unchecked: blank repeated cells)</span>
+        </div>
+
+        <div class="config-item checkbox-item highlight-toggle">
+          <label class="checkbox-container">
+            <input type="checkbox" id="clubByHsnToggle">
+            <span class="checkmark"></span>
+            <strong>Club same HSN items</strong>
+          </label>
+          <span class="help-text">(Merges identical HSN on same invoice)</span>
+        </div>
+
+        <div class="config-item checkbox-item highlight-toggle-gold">
+          <label class="checkbox-container">
+            <input type="checkbox" id="highestHsnToggle">
+            <span class="checkmark"></span>
+            <strong>1 Row per Invoice (Top HSN)</strong>
+          </label>
+          <span class="help-text">(Uses HSN of highest amount item, sums qty & amt)</span>
+        </div>
+
+        <div class="config-actions">
+          <button id="btnProcess" class="btn btn-primary" disabled>
+            <span class="btn-text">Process Invoices</span>
+            <div class="spinner hidden" id="processSpinner"></div>
+          </button>
+          <button id="btnLoadSample" class="btn btn-outline">
+            Try Demo Invoices
+          </button>
+        </div>
+      </div>
+
+      <!-- Processing Progress Bar -->
+      <div id="progressContainer" class="progress-container hidden">
+        <div class="progress-bar-bg">
+          <div id="progressBar" class="progress-bar-fill" style="width: 0%;"></div>
+        </div>
+        <div class="progress-status-text">
+          <span id="progressStatus">Uploading & processing files...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section (Shown after processing) -->
+    <div id="resultsSection" class="results-section hidden">
+      <!-- Metrics Overview Cards -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-title">Invoices Processed</div>
+          <div class="metric-value" id="metricTotalInvoices">0</div>
+          <div class="metric-sub" id="metricTotalItems">0 line items</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Total Basic Amount</div>
+          <div class="metric-value" id="metricBasicAmount">₹ 0.00</div>
+          <div class="metric-sub">Taxable Value</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Total SGST</div>
+          <div class="metric-value tax-stat" id="metricSgst">₹ 0.00</div>
+          <div class="metric-sub">State GST (Intra-state)</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Total CGST</div>
+          <div class="metric-value tax-stat" id="metricCgst">₹ 0.00</div>
+          <div class="metric-sub">Central GST (Intra-state)</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Total IGST</div>
+          <div class="metric-value tax-stat" id="metricIgst">₹ 0.00</div>
+          <div class="metric-sub">Integrated GST (Inter-state)</div>
+        </div>
+
+        <div class="metric-card highlight-card">
+          <div class="metric-title">Grand Total (Inc. Tax)</div>
+          <div class="metric-value" id="metricGrandTotal">₹ 0.00</div>
+          <div class="metric-sub">Invoice Cumulative Sum</div>
+        </div>
+      </section>
+
+      <!-- Audit & Inconsistencies Report Section -->
+      <section class="card audit-card" id="auditCard">
+        <div class="audit-card-header">
+          <div class="audit-title-area">
+            <div class="audit-status-icon" id="auditStatusIcon">⚠️</div>
+            <div>
+              <div class="audit-header-line">
+                <h3 id="auditTitleText">Processing Audit & Inconsistencies Report</h3>
+                <span class="badge" id="auditMainBadge">Checking...</span>
+              </div>
+              <p class="subtitle" id="auditSubtitleText">Automated check for missing sequence numbers, incomplete fields & clubbing logs</p>
+            </div>
+          </div>
+          <div class="audit-badges" id="auditBadgesArea">
+            <!-- Badges dynamically inserted -->
+          </div>
+        </div>
+
+        <div class="audit-tabs-nav">
+          <button class="audit-tab-btn active" data-atab="atab-sequence">
+            Missing in Sequence <span class="tab-badge-count count-amber" id="badgeCountSeq">0</span>
+          </button>
+          <button class="audit-tab-btn" data-atab="atab-missing">
+            Missing Required Data <span class="tab-badge-count count-red" id="badgeCountMissing">0</span>
+          </button>
+          <button class="audit-tab-btn" data-atab="atab-clubbed">
+            Clubbed Invoices Log <span class="tab-badge-count count-blue" id="badgeCountClubbed">0</span>
+          </button>
+          <button class="audit-tab-btn" data-atab="atab-duplicates">
+            Duplicate Invoices <span class="tab-badge-count count-purple" id="badgeCountDup">0</span>
+          </button>
+        </div>
+
+        <div class="audit-tab-panels">
+          <div class="audit-panel active" id="atab-sequence">
+            <div id="auditSeqList" class="audit-list"></div>
+          </div>
+          <div class="audit-panel" id="atab-missing">
+            <div id="auditMissingList" class="audit-list"></div>
+          </div>
+          <div class="audit-panel" id="atab-clubbed">
+            <div id="auditClubbedList" class="audit-list"></div>
+          </div>
+          <div class="audit-panel" id="atab-duplicates">
+            <div id="auditDupList" class="audit-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Table Card with Export Actions -->
+      <section class="card table-card">
+        <div class="table-toolbar">
+          <div class="toolbar-left">
+            <h3>Cumulative Invoice Data Sheet</h3>
+            <span class="report-tag" id="reportPeriodTag">OUT INV | April-June 2025-26</span>
+          </div>
+
+          <div class="toolbar-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Search by Invoice, Company, GSTIN, HSN...">
+          </div>
+
+          <div class="toolbar-right">
+            <button id="btnQuickClubToggle" class="btn btn-toggle-club" title="Toggle clubbing items with same HSN code on each invoice">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span id="quickClubText">Club same HSN: OFF</span>
+            </button>
+
+            <button id="btnQuickHighestToggle" class="btn btn-toggle-gold" title="Toggle 1 row per invoice with HSN code of highest amount">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span id="quickHighestText">1 Row (Top HSN): OFF</span>
+            </button>
+
+            <button id="btnExportExcel" class="btn btn-success" title="Download cumulative sales sheet matching reference format">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download Excel (.xlsx)
+            </button>
+
+            <button id="btnExportStats" class="btn btn-purple" title="Download Excel workbook with Company-wise and HSN-wise statistics">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              Download Stats Report (.xlsx)
+            </button>
+
+            <button id="btnExportCsv" class="btn btn-secondary">
+              Download CSV
+            </button>
+
+            <button id="btnCopyTable" class="btn btn-outline" title="Copy to clipboard for Excel">
+              Copy Data
+            </button>
+
+            <button id="btnJumpToHsnSummary" class="btn btn-navy" title="Instantly view HSN Summary for these consolidated invoices">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </svg>
+              View HSN Summary &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Cumulative Table -->
+        <div class="table-wrapper">
+          <table class="cumulative-table" id="dataTable">
+            <thead>
+              <tr class="header-super">
+                <th class="cell-out-inv">OUT INV</th>
+                <th colspan="11" class="cell-period" id="tableHeaderPeriod">April-June 2025-26</th>
+              </tr>
+              <tr class="header-columns">
+                <th>INVOICE NO</th>
+                <th>INV DATE</th>
+                <th>Company Name</th>
+                <th>GST NO</th>
+                <th>HSN Code</th>
+                <th class="num-col">Qty</th>
+                <th class="num-col">BASIC AMOUNT</th>
+                <th class="num-col">SGST</th>
+                <th class="num-col">CGST</th>
+                <th class="num-col">IGST</th>
+                <th class="num-col">TOTAL AMOUNT</th>
+                <th>description / remarks</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Dynamically rendered rows -->
+            </tbody>
+            <tfoot id="tableFoot">
+              <!-- Total summary row -->
+            </tfoot>
+          </table>
+        </div>
+        
+        <div class="table-footer-info">
+          <span id="rowCountInfo">Showing all rows</span>
+          <div class="cell-copy-hint" title="Click any cell value in this table to instantly copy it to your clipboard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Click any cell to copy value
+          </div>
+        </div>
+      </section>
+    </div>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: HSN-WISE GST SUMMARY GENERATOR     -->
+    <!-- ========================================== -->
+    <main id="viewHsnSummary" class="view-panel hidden">
+      <!-- Upload Card for Cumulative Sheet -->
+      <section class="card upload-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="step-badge">2</span>
+            <h3>HSN-wise GST Summary Generator</h3>
+          </div>
+          <div class="badge badge-info">Input: Modified Cumulative Excel Sheet (.xlsx / .xls)</div>
+        </div>
+
+        <p class="section-lead-text">
+          Upload your cumulative sales register (even after adding, modifying, or deleting rows). 
+          The system groups identical <strong>HSN Codes</strong> together, separates <strong>Zero GST (SEZ / NIL)</strong> lines, 
+          merges <strong>9987XX</strong> services under <code>998719</code>, automatically excludes original invoice totals, 
+          and generates the exact summary workbook matching your reference format.
+        </p>
+
+        <div class="upload-area" id="hsnDropZone">
+          <input type="file" id="hsnFileInput" accept=".xlsx, .xls" class="file-input-hidden">
+          <div class="upload-icon-container">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+          </div>
+          <div class="upload-text">
+            <p class="primary-text">Drag & drop your Cumulative Sales Excel file here or <span class="highlight-link">browse</span></p>
+            <p class="secondary-text">Upload the sheet generated from Consolidate Invoices (even if manually edited)</p>
+          </div>
+          <div id="hsnFileSelectedBadge" class="file-count-badge hidden">
+            <span id="hsnFileName">No file chosen</span>
+          </div>
+        </div>
+
+        <div class="config-bar">
+          <div class="config-item">
+            <label for="hsnPeriodInput">Report Period / Title</label>
+            <input type="text" id="hsnPeriodInput" value="July–September 2026" placeholder="e.g. July–September 2026">
+          </div>
+
+          <div class="config-actions">
+            <button id="btnProcessHsn" class="btn btn-primary" disabled>
+              <span class="btn-text">Generate HSN Summary</span>
+              <div class="spinner hidden" id="hsnProcessSpinner"></div>
+            </button>
+            <button id="btnLoadSampleHsn" class="btn btn-outline">
+              Try Demo Cumulative Sheet
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- HSN Results Section -->
+      <div id="hsnResultsSection" class="results-section hidden">
+        <!-- Metrics Grid -->
+        <section class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-title">HSN Code Groups</div>
+            <div class="metric-value" id="hsnMetricGroups">0</div>
+            <div class="metric-sub" id="hsnMetricLines">0 raw invoice lines</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Total Quantity</div>
+            <div class="metric-value" id="hsnMetricQty">0</div>
+            <div class="metric-sub">Cumulative Units</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Taxable Basic Value</div>
+            <div class="metric-value" id="hsnMetricBasic">₹ 0.00</div>
+            <div class="metric-sub">Net Taxable Amount</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Total SGST</div>
+            <div class="metric-value tax-stat" id="hsnMetricSgst">₹ 0.00</div>
+            <div class="metric-sub">State GST (Intra-state)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Total CGST</div>
+            <div class="metric-value tax-stat" id="hsnMetricCgst">₹ 0.00</div>
+            <div class="metric-sub">Central GST (Intra-state)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Total IGST</div>
+            <div class="metric-value tax-stat" id="hsnMetricIgst">₹ 0.00</div>
+            <div class="metric-sub">Integrated GST (Inter-state)</div>
+          </div>
+          <div class="metric-card highlight-card">
+            <div class="metric-title">Total incl. GST</div>
+            <div class="metric-value" id="hsnMetricGrand">₹ 0.00</div>
+            <div class="metric-sub">All Taxes & Basic Included</div>
+        </section>
+
+        <!-- HSN Audit & Inconsistencies Report Section -->
+        <section class="card audit-card" id="hsnAuditCard">
+          <div class="audit-card-header">
+            <div class="audit-title-area">
+              <div class="audit-status-icon" id="hsnAuditStatusIcon">⚠️</div>
+              <div>
+                <div class="audit-header-line">
+                  <h3 id="hsnAuditTitleText">Cumulative Sheet Consistency & Integrity Check</h3>
+                  <span class="badge" id="hsnAuditMainBadge">Checking...</span>
+                </div>
+                <p class="subtitle" id="hsnAuditSubtitleText">Automated check for missing HSNs, blank fields, tax mismatches & invoice sequence gaps</p>
+              </div>
+            </div>
+            <div class="audit-badges" id="hsnAuditBadgesArea">
+              <!-- Badges dynamically inserted -->
+            </div>
+          </div>
+
+          <div class="audit-tabs-nav">
+            <button class="audit-tab-btn active" data-atab="atab-hsn-missing">
+              Missing Required Data <span class="tab-badge-count count-red" id="badgeHsnMissing">0</span>
+            </button>
+            <button class="audit-tab-btn" data-atab="atab-hsn-tax">
+              Tax Discrepancies <span class="tab-badge-count count-amber" id="badgeHsnTax">0</span>
+            </button>
+            <button class="audit-tab-btn" data-atab="atab-hsn-sequence">
+              Missing in Sequence <span class="tab-badge-count count-purple" id="badgeHsnSeq">0</span>
+            </button>
+            <button class="audit-tab-btn" data-atab="atab-hsn-consol">
+              9987 Consolidations <span class="tab-badge-count count-blue" id="badgeHsnConsol">0</span>
+            </button>
+          </div>
+
+          <div class="audit-tab-panels">
+            <div class="audit-panel active" id="atab-hsn-missing">
+              <div id="hsnAuditMissingList" class="audit-list"></div>
+            </div>
+            <div class="audit-panel" id="atab-hsn-tax">
+              <div id="hsnAuditTaxList" class="audit-list"></div>
+            </div>
+            <div class="audit-panel" id="atab-hsn-sequence">
+              <div id="hsnAuditSeqList" class="audit-list"></div>
+            </div>
+            <div class="audit-panel" id="atab-hsn-consol">
+              <div id="hsnAuditConsolList" class="audit-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HSN Summary Table Card matching user reference image -->
+        <section class="card table-card">
+          <div class="table-toolbar">
+            <div class="toolbar-left">
+              <div>
+                <h3 id="hsnTableTitle">HSN-wise GST Summary | July–September 2026</h3>
+                <p class="table-subtitle-note">Original invoice TOTAL row excluded; zero GST basic shown separately.</p>
+              </div>
+            </div>
+
+            <div class="toolbar-right">
+              <button id="btnExportHsnExcel" class="btn btn-navy" title="Download Excel workbook matching reference format">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download HSN Summary (.xlsx)
+              </button>
+              <button id="btnExportHsnCsv" class="btn btn-secondary">
+                Download CSV
+              </button>
+              <button id="btnCopyHsnTable" class="btn btn-outline" title="Copy TSV data to clipboard">
+                Copy Data
+              </button>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="hsn-summary-table" id="hsnDataTable">
+              <thead>
+                <tr class="header-hsn-navy">
+                  <th>HSN Code</th>
+                  <th>Tax Category</th>
+                  <th class="num-col">Invoice Lines</th>
+                  <th class="num-col">Quantity</th>
+                  <th class="num-col">Basic Amount</th>
+                  <th class="num-col">SGST</th>
+                  <th class="num-col">CGST</th>
+                  <th class="num-col">IGST</th>
+                  <th class="num-col">Total incl. GST</th>
+                </tr>
+              </thead>
+              <tbody id="hsnTableBody">
+                <!-- Dynamically populated HSN summary rows -->
+              </tbody>
+              <tfoot id="hsnTableFoot">
+                <!-- Grand Total Row matching image (Light blue fill, bold) -->
+              </tfoot>
+            </table>
+          </div>
+          
+          <div class="table-footer-info">
+            <span id="hsnRowCountInfo">Showing 0 HSN summary groups</span>
+            <div class="cell-copy-hint" title="Click any cell value in this table to instantly copy it to your clipboard">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Click any cell to copy value
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: GST RECONCILIATION & FILING        -->
+    <!-- ========================================== -->
+    <main id="viewReconciliation" class="view-panel hidden">
+      <section class="card coming-soon-card">
+        <div class="coming-soon-badge">Functional Module 3 &bull; In Development</div>
+        <h2>GST Portal Reconciliation & Auto-Filing Matching</h2>
+        <p class="coming-soon-desc">
+          Automated comparison between your aggregated sales register and GSTR-1 / GSTR-3B filings. 
+          Will catch mismatched tax rates, missing invoices in portal returns, and discrepancy reports.
+        </p>
+        <div class="coming-soon-features-list">
+          <div class="feature-item-pill">✅ 2B vs Sales Register Reconciler</div>
+          <div class="feature-item-pill">✅ Portal JSON Format Export</div>
+          <div class="feature-item-pill">✅ Tax Rate Variance Detector</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Deployment / Run Local Modal -->
+    <div id="deployModal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Running Locally or Deploying on Render</h3>
+          <button id="btnCloseDeployModal" class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-tabs">
+            <button class="tab-btn active" data-tab="tab-local">Run on Your Laptop</button>
+            <button class="tab-btn" data-tab="tab-render">Deploy on Render (Cloud)</button>
+          </div>
+
+          <div id="tab-local" class="tab-content active">
+            <h4>1. Running Locally on Your Laptop (Windows)</h4>
+            <p>You can run this server on your laptop anytime without installing extra tools:</p>
+            <ol class="setup-steps">
+              <li>
+                <strong>Double-click <code>start.bat</code></strong> in this project folder.
+              </li>
+              <li>
+                It will automatically start the server and open <code>http://localhost:3000</code> in your browser!
+              </li>
+              <li>
+                To stop the server, simply close the command prompt window.
+              </li>
+            </ol>
+            <div class="code-box">
+              <code>.\start.bat</code>
+            </div>
+          </div>
+
+          <div id="tab-render" class="tab-content">
+            <h4>2. Deploying on Render (Free Cloud Hosting)</h4>
+            <p>Deploy this app to the cloud so anyone can access it via a web link:</p>
+            <ol class="setup-steps">
+              <li>
+                Push this project folder to your GitHub repository:
+                <div class="code-box">
+                  <code>git init<br>git add .<br>git commit -m "GST Invoice Aggregator"<br>git remote add origin YOUR_REPO_URL<br>git push -u origin main</code>
+                </div>
+              </li>
+              <li>
+                Go to <a href="https://render.com" target="_blank" rel="noopener">Render.com</a> and sign in.
+              </li>
+              <li>
+                Click <strong>New +</strong> &rarr; <strong>Web Service</strong> &rarr; Connect your GitHub repository.
+              </li>
+              <li>
+                Render automatically detects settings from <code>render.yaml</code> or enter:
+                <ul>
+                  <li><strong>Runtime:</strong> Node</li>
+                  <li><strong>Build Command:</strong> <code>npm install</code></li>
+                  <li><strong>Start Command:</strong> <code>npm start</code></li>
+                </ul>
+              </li>
+              <li>
+                Click <strong>Deploy Web Service</strong>. In ~1 minute, your cloud URL will be live!
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      <p>GST Invoice Aggregator &bull; Formatted identically to Tax Invoice Output &bull; Ready for Local & Cloud Deployment</p>
+    </footer>
+  </div>
+
+  <!-- Global Floating Toast for Click-to-Copy -->
+  <div id="copyToastContainer" class="copy-toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
